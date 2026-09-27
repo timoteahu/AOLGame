@@ -20,22 +20,24 @@ npm start          # http://localhost:3000
 ## Give Lexi a real brain
 
 With no API key the game runs on a scripted fallback engine (still playable,
-but rule-based). For real AI responses, set one of:
+but rule-based). For real AI responses, either drop a `.env` file in the repo
+root (it's gitignored and auto-loaded by `npm start`):
 
 ```bash
-export ANTHROPIC_API_KEY=...   # preferred
-export OPENAI_API_KEY=...      # or OpenAI
-npm start
+ANTHROPIC_API_KEY=sk-ant-...
+# or
+OPENAI_API_KEY=sk-...
 ```
 
-You can also put them in a `.env` file and `source` it — or just export before
-`npm start`.
+or export the var in your shell before `npm start`. Check the startup log —
+it prints which brain Lexi is using (`anthropic`, `openai`, or `fallback`).
 
 ## How it works
 
 - `server.js` — Express server: static frontend + `/api/chat`, `/api/state`, `/api/reset`
-- `src/engine.js` — game state (interest 0–100, memories, history), turn orchestration, JSON persistence in `data/`
-- `src/lexi.js` — Lexi's persona prompt, the structured JSON turn contract, chapter thresholds
+- `src/engine.js` — game state (interest 0–100, memories, history), section transitions, JSON persistence in `data/`
+- `src/sections.js` — the five chat sessions (junior spring → winter formal → summer → senior fall → prom season)
+- `src/lexi.js` — Lexi's persona prompt, the structured JSON turn contract
 - `src/llm.js` — Anthropic / OpenAI provider abstraction (raw fetch, no SDK)
 - `src/fallback.js` — scripted Lexi when no key is set
-- `public/` — the AIM UI: draggable windows, typing indicator, synthesized AIM sounds
+- `public/` — the AIM UI: draggable windows, 8-bit mood faces (`pixels.js`), numbered reply suggestions, synthesized AIM sounds
