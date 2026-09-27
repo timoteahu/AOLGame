@@ -2,6 +2,7 @@ const $ = (id) => document.getElementById(id);
 const messagesEl = $('messages');
 const typingEl = $('typing');
 const composeEl = $('compose');
+const sugEl = $('suggestions');
 
 /* ---------- AIM sounds (synthesized, no audio files needed) ---------- */
 let audioCtx = null;
@@ -47,10 +48,7 @@ document.querySelectorAll('.window').forEach((win) => {
 });
 
 /* ---------- rendering ---------- */
-const MOOD_ICON = {
-  bored: '😴', neutral: '🙂', curious: '🤔', amused: '😄',
-  flirty: '😏', annoyed: '😒', hurt: '😢', smitten: '😍',
-};
+let currentMood = 'neutral';
 
 function stamp() {
   return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -71,8 +69,46 @@ function addMsg(who, text) {
 
 function renderState(s) {
   $('interest-fill').style.width = s.interest + '%';
-  $('buddy-mood').textContent = (MOOD_ICON[s.mood] || '') + ' ' + (s.mood || '');
-  $('chapter-label').textContent = s.chapterLabel || 'Lexi is online';
+  $('buddy-mood').textContent = s.mood || '';
+  $('chapter-label').textContent = s.sectionTitle || 'Lexi is online';
+  if (s.mood && s.mood !== currentMood) {
+    currentMood = s.mood;
+    drawFace($('lexi-face'), currentMood);
+    drawFace($('buddy-face'), currentMood);
+  }
+}
+
+/* ---------- suggestions (Emily-is-Away style numbered options) ---------- */
+let currentSuggestions = [];
+
+function renderSuggestions(list) {
+  currentSuggestions = list || [];
+  sugEl.innerHTML = '';
+  currentSuggestions.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'sug';
+    div.innerHTML = `<span class="num">${i + 1}.</span>`;
+    div.appendChild(document.createTextNode(s));
+    div.addEventListener('click', () => pickSuggestion(i));
+    sugEl.appendChild(div);
+  });
+}
+
+// Pick an option: it "types" itself into the compose box, then sends.
+let autoTyping = false;
+async function pickSuggestion(i) {
+  const text = currentSuggestions[i];
+  if (!text || busy || autoTyping) return;
+  autoTyping = true;
+  renderSuggestions([]);
+  composeEl.value = '';
+  for (let c = 0; c < text.length; c++) {
+    composeEl.value += text[c];
+    if (c % 3 === 0) blip(1400 + Math.random() * 400, 0.02, 0, 0.03, 'square');
+    await sleep(28);
+  }
+  autoTyping = false;
+  send();
 }
 
 /* ---------- game flow ---------- */
@@ -80,9 +116,10 @@ let busy = false;
 
 async function send() {
   const text = composeEl.value.trim();
-  if (!text || busy) return;
+  if (!text || busy || autoTyping) return;
   busy = true;
   composeEl.value = '';
+  renderSuggestions([]);
   addMsg('player', text);
   sndSend();
 
@@ -112,10 +149,32 @@ async function send() {
   }
   typingEl.classList.add('hidden');
   renderState(data.state);
+  renderSuggestions(data.suggestions);
   busy = false;
   composeEl.focus();
 
-  if (data.state.outcome) endGame(data.state.outcome);
+  for (const ev of data.events || []) {
+    if (ev.type === 'section_end') await sectionTransition(data.state, ev.reason);
+    if (ev.type === 'game_over') endGame(ev.outcome);
+  }
+}
+
+async function sectionTransition(state, reason) {
+  sndSlam();
+  addMsg('system', '*xX_lexi_Xx has signed off*');
+  await sleep(900);
+  $('section-card-text').textContent = state.sectionCard;
+  $('section-card').classList.remove('hidden');
+  await sleep(2600);
+  $('section-card').classList.add('hidden');
+  messagesEl.innerHTML = '';
+  renderSuggestions([]);
+  sndDoor();
+  addMsg('system', '*xX_lexi_Xx has signed on*');
+  await sleep(400);
+  if (reason === 'stormed') {
+    addMsg('system', 'she signed back on... but she remembers how that ended.');
+  }
 }
 
 function endGame(outcome) {
@@ -128,6 +187,9 @@ function endGame(outcome) {
   } else if (outcome === 'rejected') {
     title.textContent = 'the friendzone';
     text.textContent = 'she thinks you\'re "really sweet, but..." — you know how this ends.';
+  } else if (outcome === 'drifted') {
+    title.textContent = 'emily is away';
+    text.textContent = 'the conversations got shorter. then they stopped. whatever this was, it\'s over now.';
   } else {
     title.textContent = '*door slam*';
     text.textContent = 'xX_lexi_Xx has signed off. she is not coming back. you blew it.';
@@ -139,10 +201,18 @@ function endGame(outcome) {
 async function newGame() {
   await fetch('/api/reset', { method: 'POST' });
   messagesEl.innerHTML = '';
+  renderSuggestions([]);
   $('ending-overlay').classList.add('hidden');
-  addMsg('system', '*xX_lexi_Xx has signed on*');
+  const s = await (await fetch('/api/state')).json();
+  renderState(s);
+  $('section-card-text').textContent = s.sectionCard;
+  $('section-card').classList.remove('hidden');
+  await sleep(2200);
+  $('section-card').classList.add('hidden');
   sndDoor();
-  addMsg('system', 'it\'s 9:47pm on a thursday. you\'ve been staring at her screen name for 20 minutes.');
+  addMsg('system', '*xX_lexi_Xx has signed on*');
+  await sleep(400);
+  addMsg('system', 'you\'ve been staring at her screen name for 20 minutes.');
   composeEl.focus();
 }
 
@@ -157,13 +227,26 @@ $('warn-btn').addEventListener('click', () => addMsg('system', 'warning her woul
 composeEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
 });
+document.addEventListener('keydown', (e) => {
+  if (['1', '2', '3'].includes(e.key) && document.activeElement !== composeEl) {
+    pickSuggestion(Number(e.key) - 1);
+  }
+});
 
 (async () => {
+  drawFace($('player-face'), 'neutral', '#3a3a3a');
+  drawFace($('lexi-face'), 'neutral');
+  drawFace($('buddy-face'), 'neutral');
   const s = await (await fetch('/api/state')).json();
   renderState(s);
   if (s.outcome) { endGame(s.outcome); return; }
   addMsg('system', '*xX_lexi_Xx has signed on*');
   sndDoor();
   await sleep(400);
-  addMsg('system', 'it\'s 9:47pm on a thursday. you\'ve been staring at her screen name for 20 minutes.');
+  if (Array.isArray(s.history) && s.history.length) {
+    for (const h of s.history) addMsg(h.who, h.text);
+    addMsg('system', '— ' + (s.sectionCard || '') + ' —');
+  } else {
+    addMsg('system', s.sectionCard || 'it\'s late. you\'ve been staring at her screen name for 20 minutes.');
+  }
 })();

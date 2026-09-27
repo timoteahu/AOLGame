@@ -10,7 +10,7 @@
 <div id="desktop">
 
   <!-- Buddy List window -->
-  <div class="window" id="buddy-window" style="left: 30px; top: 40px; width: 220px;">
+  <div class="window" id="buddy-window" style="left: 30px; top: 40px; width: 230px;">
     <div class="titlebar">
       <span class="title">Buddy List</span>
       <div class="titlebar-btns"><span class="tbtn">_</span><span class="tbtn">&#9634;</span><span class="tbtn">&times;</span></div>
@@ -19,7 +19,7 @@
     <div class="buddy-body">
       <div class="buddy-group">&#9660; Buddies (1/1)</div>
       <div class="buddy" id="lexi-buddy">
-        <span class="buddy-icon">&#128519;</span>
+        <canvas id="buddy-face" width="16" height="16" class="mini-face"></canvas>
         <span class="buddy-name">xX_lexi_Xx</span>
         <span class="buddy-mood" id="buddy-mood"></span>
       </div>
@@ -34,18 +34,28 @@
   </div>
 
   <!-- IM window -->
-  <div class="window" id="im-window" style="left: 290px; top: 90px; width: 480px;">
-    <div class="titlebar">
-      <span class="title">Instant Message with xX_lexi_Xx</span>
+  <div class="window" id="im-window" style="left: 300px; top: 90px; width: 520px;">
+    <div class="titlebar xp">
+      <span class="title">xX_lexi_Xx — Instant Message</span>
       <div class="titlebar-btns"><span class="tbtn">_</span><span class="tbtn">&#9634;</span><span class="tbtn">&times;</span></div>
     </div>
     <div class="menubar"><span>File</span><span>Edit</span><span>View</span><span>Insert</span></div>
     <div class="im-body">
-      <div id="messages"></div>
-      <div id="typing" class="hidden">xX_lexi_Xx is typing...</div>
+      <div class="icon-col">
+        <canvas id="lexi-face" width="48" height="48" class="big-face"></canvas>
+        <div class="icon-caption">lexi</div>
+      </div>
+      <div class="chat-col">
+        <div id="messages"></div>
+        <div id="typing" class="hidden">xX_lexi_Xx is typing...</div>
+      </div>
     </div>
     <div class="im-compose">
-      <textarea id="compose" placeholder="type something smooth..." autofocus></textarea>
+      <div id="suggestions"></div>
+      <div class="compose-row">
+        <canvas id="player-face" width="32" height="32" class="big-face"></canvas>
+        <textarea id="compose" placeholder="type something smooth... (or press 1/2/3)" autofocus></textarea>
+      </div>
       <div class="im-toolbar">
         <button id="warn-btn" title="Warn">Warn!</button>
         <button id="block-btn" title="Block">Block</button>
@@ -53,6 +63,10 @@
         <button id="send-btn" class="send">Send</button>
       </div>
     </div>
+  </div>
+
+  <div id="section-card" class="hidden">
+    <div id="section-card-text"></div>
   </div>
 
   <div id="ending-overlay" class="hidden">
@@ -64,6 +78,7 @@
   </div>
 
 </div>
+<script src="pixels.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
