@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AOL Instant Messenger</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="desktop">
+
+  <!-- Buddy List window -->
+  <div class="window" id="buddy-window" style="left: 30px; top: 40px; width: 220px;">
+    <div class="titlebar">
+      <span class="title">Buddy List</span>
+      <div class="titlebar-btns"><span class="tbtn">_</span><span class="tbtn">&#9634;</span><span class="tbtn">&times;</span></div>
+    </div>
+    <div class="menubar"><span>My AIM</span><span>People</span><span>Help</span></div>
+    <div class="buddy-body">
+      <div class="buddy-group">&#9660; Buddies (1/1)</div>
+      <div class="buddy" id="lexi-buddy">
+        <span class="buddy-icon">&#128519;</span>
+        <span class="buddy-name">xX_lexi_Xx</span>
+        <span class="buddy-mood" id="buddy-mood"></span>
+      </div>
+      <div class="interest-wrap" title="vibes">
+        <div class="interest-label">vibes</div>
+        <div class="interest-bar"><div id="interest-fill"></div></div>
+      </div>
+    </div>
+    <div class="buddy-footer">
+      <span id="chapter-label">Lexi is online</span>
+    </div>
+  </div>
+
+  <!-- IM window -->
+  <div class="window" id="im-window" style="left: 290px; top: 90px; width: 480px;">
+    <div class="titlebar">
+      <span class="title">Instant Message with xX_lexi_Xx</span>
+      <div class="titlebar-btns"><span class="tbtn">_</span><span class="tbtn">&#9634;</span><span class="tbtn">&times;</span></div>
+    </div>
+    <div class="menubar"><span>File</span><span>Edit</span><span>View</span><span>Insert</span></div>
+    <div class="im-body">
+      <div id="messages"></div>
+      <div id="typing" class="hidden">xX_lexi_Xx is typing...</div>
+    </div>
+    <div class="im-compose">
+      <textarea id="compose" placeholder="type something smooth..." autofocus></textarea>
+      <div class="im-toolbar">
+        <button id="warn-btn" title="Warn">Warn!</button>
+        <button id="block-btn" title="Block">Block</button>
+        <button id="reset-btn" title="New game">New Game</button>
+        <button id="send-btn" class="send">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ending-overlay" class="hidden">
+    <div class="ending-card">
+      <div id="ending-title"></div>
+      <div id="ending-text"></div>
+      <button id="ending-reset">sign back on</button>
+    </div>
+  </div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
