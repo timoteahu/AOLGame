@@ -62,7 +62,7 @@ function addMsg(who, text) {
     div.textContent = text;
   } else {
     const name = who === 'player' ? 'you' : 'xX_lexi_Xx';
-    div.innerHTML = `<span class="who">${name}</span><span class="time">${stamp()}</span>: `;
+    div.innerHTML = `<span class="who">${name}</span> <span class="time">${stamp()}</span>: `;
     div.appendChild(document.createTextNode(text));
   }
   messagesEl.appendChild(div);
